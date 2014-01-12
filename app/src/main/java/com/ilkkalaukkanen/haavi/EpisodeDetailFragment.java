@@ -53,6 +53,7 @@ public class EpisodeDetailFragment extends Fragment {
     // display item
     if (mItem != null) {
       ((TextView) rootView.findViewById(R.id.episode_title)).setText(mItem.title);
+      ((TextView) rootView.findViewById(R.id.episode_description)).setText(mItem.description);
     }
 
     return rootView;

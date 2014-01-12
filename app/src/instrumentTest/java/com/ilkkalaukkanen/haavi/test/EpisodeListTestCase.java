@@ -28,6 +28,15 @@ public class EpisodeListTestCase extends ActivityInstrumentationTestCase2 {
 
   public void testSelectEpisode() {
     solo.clickInList(0);
+    assertTrue(solo.searchText("First item description"));
+  }
+
+  public void testSelectEpisodeAndGoBack() {
+    solo.clickInList(0);
+    solo.goBack();
+    assertTrue(solo.searchText("Item 1"));
+    assertTrue(solo.searchText("Item 2"));
+    assertTrue(solo.searchText("Item 3"));
   }
 
   @Override

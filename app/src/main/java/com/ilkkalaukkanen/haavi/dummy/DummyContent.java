@@ -47,8 +47,8 @@ public class DummyContent {
     public static class DummyItem {
       public final  String id;
       public final  String title;
-      private final String description;
-      private final URL    url;
+      public final String description;
+      public final URL    url;
 
       public DummyItem(String id, String content, String description, URL url) {
         this.id = id;

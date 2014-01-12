@@ -1,9 +1,11 @@
 package com.ilkkalaukkanen.haavi;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.MenuItem;
 
 /**
@@ -15,7 +17,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link EpisodeDetailFragment}.
  */
-public class EpisodeDetailActivity extends FragmentActivity {
+public class EpisodeDetailActivity extends FragmentActivity implements ControlsFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,4 +66,9 @@ public class EpisodeDetailActivity extends FragmentActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+  @Override
+  public void onFragmentInteraction(final Uri uri) {
+    Log.d("EpisodeDetailActivity", "onFragmentInteraction called with " + uri.toString());
+  }
 }

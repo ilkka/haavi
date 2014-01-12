@@ -3,6 +3,7 @@ package com.ilkkalaukkanen.haavi;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import roboguice.activity.RoboFragmentActivity;
 
 
 /**
@@ -21,7 +22,7 @@ import android.support.v4.app.FragmentActivity;
  * {@link EpisodeListFragment.Callbacks} interface
  * to listen for item selections.
  */
-public class EpisodeListActivity extends FragmentActivity
+public class EpisodeListActivity extends RoboFragmentActivity
         implements EpisodeListFragment.Callbacks {
 
     /**

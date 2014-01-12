@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.MenuItem;
+import roboguice.activity.RoboFragmentActivity;
 
 /**
  * An activity representing a single Episode detail screen. This
@@ -17,7 +18,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link EpisodeDetailFragment}.
  */
-public class EpisodeDetailActivity extends FragmentActivity implements ControlsFragment.OnFragmentInteractionListener {
+public class EpisodeDetailActivity extends RoboFragmentActivity implements ControlsFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

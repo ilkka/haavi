@@ -34,4 +34,5 @@ dependencies {
     compile 'com.android.support:support-v4:18.0.0'
     compile 'com.netflix.rxjava:rxjava-android:0.11.+'
     compile 'org.roboguice:roboguice:2.+'
+    instrumentTestCompile 'com.jayway.android.robotium:robotium-solo:5.+'
 }

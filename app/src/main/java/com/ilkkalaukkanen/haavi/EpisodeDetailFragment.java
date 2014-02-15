@@ -76,9 +76,11 @@ public class EpisodeDetailFragment extends Fragment {
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                getActivity().startService(new Intent(getActivity(), PlayerService.class)
-                                                   .setAction(PlayerService.ACTION_PLAY)
-                                                   .setData(Uri.parse(url)));
+                final Intent intent = new Intent(getActivity(), PlayerService.class)
+                        .setAction(PlayerService.ACTION_PLAY)
+                        .setData(Uri.parse(url))
+                        .putExtra(PlayerService.EXTRA_TITLE, title);
+                getActivity().startService(intent);
             }
         });
 

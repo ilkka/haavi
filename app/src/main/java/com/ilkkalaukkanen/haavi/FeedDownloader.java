@@ -112,6 +112,7 @@ public class FeedDownloader {
                 url = parser.getAttributeValue(null, "url");
                 length = parser.getAttributeValue(null, "length");
                 type = parser.getAttributeValue(null, "type");
+                skip(parser);
             } else if (TAG_GUID.equals(tagName)) {
                 guid = readNodeAsText(parser, TAG_GUID);
             } else {

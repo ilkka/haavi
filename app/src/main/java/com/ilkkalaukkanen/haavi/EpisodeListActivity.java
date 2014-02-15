@@ -15,6 +15,7 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -63,7 +64,7 @@ public class EpisodeListActivity extends RoboFragmentActivity
                     .setActivateOnItemClick(true);
         }
         podcastList = new ArrayList<Podcast>();
-        podcastArrayAdapter = new PodcastArrayAdapter();
+        podcastArrayAdapter = new PodcastArrayAdapter(podcastList);
         episodeListFragment.setListAdapter(podcastArrayAdapter);
 
         feedDownloader.getFeed("http://www.theskepticsguide.org/feed/sgu")
@@ -78,15 +79,20 @@ public class EpisodeListActivity extends RoboFragmentActivity
     /**
      * Callback method from {@link EpisodeListFragment.Callbacks} indicating that the item with the given ID was
      * selected.
+     * @param position
      */
     @Override
-    public void onItemSelected(String id) {
+    public void onItemSelected(int position) {
+        Podcast item = podcastList.get(position);
+
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(EpisodeDetailFragment.ARG_ITEM_ID, id);
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_TITLE, item.getTitle());
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION, item.getDescription());
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_URL, item.getUrl());
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -97,14 +103,16 @@ public class EpisodeListActivity extends RoboFragmentActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, EpisodeDetailActivity.class);
-            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_ID, id);
+            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_TITLE, item.getTitle());
+            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION, item.getDescription());
+            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_URL, item.getUrl());
             startActivity(detailIntent);
         }
     }
 
     private class PodcastArrayAdapter extends ArrayAdapter<Podcast> {
-        public PodcastArrayAdapter() {
-            super(EpisodeListActivity.this, R.layout.episode_list_item, new ArrayList<Podcast>());
+        public PodcastArrayAdapter(final List<Podcast> podcastList) {
+            super(EpisodeListActivity.this, R.layout.episode_list_item, podcastList);
         }
 
         @Override

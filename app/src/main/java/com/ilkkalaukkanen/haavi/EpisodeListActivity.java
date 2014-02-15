@@ -2,13 +2,15 @@ package com.ilkkalaukkanen.haavi;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.widget.ArrayAdapter;
 import com.google.inject.Inject;
 import com.ilkkalaukkanen.haavi.model.Podcast;
 import roboguice.activity.RoboFragmentActivity;
-import rx.Observer;
+import rx.android.Properties;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+import java.util.ArrayList;
 
 
 /**
@@ -33,11 +35,15 @@ public class EpisodeListActivity extends RoboFragmentActivity
 
     @Inject
     FeedDownloader feedDownloader;
+    private EpisodeListFragment   episodeListFragment;
+    private ArrayAdapter<Podcast> podcastArrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_episode_list);
+
+        episodeListFragment = (EpisodeListFragment) getSupportFragmentManager().findFragmentById(R.id.episode_list);
 
         if (findViewById(R.id.episode_detail_container) != null) {
             // The detail container view will be present only in the
@@ -48,30 +54,20 @@ public class EpisodeListActivity extends RoboFragmentActivity
 
             // In two-pane mode, list items should be given the
             // 'activated' state when touched.
-            ((EpisodeListFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.episode_list))
+            episodeListFragment
                     .setActivateOnItemClick(true);
         }
+        podcastArrayAdapter = new ArrayAdapter<Podcast>(this,
+                                                        android.R.layout.simple_list_item_activated_1,
+                                                        android.R.id.text1,
+                                                        new ArrayList<Podcast>());
+        episodeListFragment.setListAdapter(podcastArrayAdapter);
 
         feedDownloader.getFeed("http://www.theskepticsguide.org/feed/sgu")
                       .subscribeOn(Schedulers.newThread())
                       .observeOn(AndroidSchedulers.mainThread())
-                      .subscribe(new Observer<Podcast>() {
-                          @Override
-                          public void onCompleted() {
-                              Log.d("EpisodeListActivity", "We're done");
-                          }
-
-                          @Override
-                          public void onError(final Throwable throwable) {
-                              Log.e("EpisodeListActivity", "Borked", throwable);
-                          }
-
-                          @Override
-                          public void onNext(final Podcast podcast) {
-                              Log.d("EpisodeListActivity", "Got podcast: " + podcast.getTitle());
-                          }
-                      });
+                      .toList()
+                      .subscribe(Properties.dataSetFrom(podcastArrayAdapter));
 
         // TODO: If exposing deep links into your app, handle intents here.
     }

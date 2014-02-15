@@ -22,6 +22,8 @@ public class FeedDownloader {
     public static final String            TAG_TITLE             = "title";
     public static final String            TAG_DESCRIPTION       = "description";
     public static final String            TAG_PUBDATE           = "pubDate";
+    public static final String TAG_ENCLOSURE = "enclosure";
+    public static final String TAG_GUID      = "guid";
     public static final DateTimeFormatter RSS_PUBDATE_FORMATTER =
             DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z").withLocale(Locale.ENGLISH);
     @Inject
@@ -90,7 +92,9 @@ public class FeedDownloader {
         String title = null;
         String description = null;
         DateTime pubDate = null;
-        String uri = null;
+        String url = null;
+        String length = null;
+        String type = null;
         String guid = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -102,14 +106,19 @@ public class FeedDownloader {
             } else if (TAG_DESCRIPTION.equals(tagName)) {
                 description = readNodeAsText(parser, TAG_DESCRIPTION);
             } else if (TAG_PUBDATE.equals(tagName)) {
-                // Mon, 10 Feb 2014 12:00:00 -0400
                 pubDate = DateTime.parse(readNodeAsText(parser, TAG_PUBDATE),
                                          RSS_PUBDATE_FORMATTER);
+            } else if (TAG_ENCLOSURE.equals(tagName)) {
+                url = parser.getAttributeValue(null, "url");
+                length = parser.getAttributeValue(null, "length");
+                type = parser.getAttributeValue(null, "type");
+            } else if (TAG_GUID.equals(tagName)) {
+                guid = readNodeAsText(parser, TAG_GUID);
             } else {
                 skip(parser);
             }
         }
-        subscriber.onNext(new Podcast(title, description, pubDate));
+        subscriber.onNext(new Podcast(title, description, pubDate, url, length, type, guid));
     }
 
     private String readNodeAsText(final XmlPullParser parser, final String tagName)

@@ -7,18 +7,18 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.joda.time.DateTime;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
-import rx.subscriptions.Subscriptions;
-import rx.util.functions.Func1;
 
 import java.io.IOException;
 
 public class FeedDownloader {
+    public static final String TAG_TITLE       = "title";
+    public static final String TAG_DESCRIPTION = "description";
+    public static final String TAG_PUBDATE     = "pubDate";
     @Inject
     HttpClient client;
 
@@ -83,23 +83,33 @@ public class FeedDownloader {
             throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "item");
         String title = null;
+        String description = null;
+        DateTime pubDate = null;
+        String uri = null;
+        String guid = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
-            if ("title".equals(parser.getName())) {
-                title = readItemTitle(parser);
+            final String tagName = parser.getName();
+            if (TAG_TITLE.equals(tagName)) {
+                title = readNodeAsText(parser, TAG_TITLE);
+            } else if (TAG_DESCRIPTION.equals(tagName)) {
+                description = readNodeAsText(parser, TAG_DESCRIPTION);
+            } else if (TAG_PUBDATE.equals(tagName)) {
+                pubDate = DateTime.parse(readNodeAsText(parser, TAG_PUBDATE));
             } else {
                 skip(parser);
             }
         }
-        subscriber.onNext(new Podcast(title));
+        subscriber.onNext(new Podcast(title, description, pubDate));
     }
 
-    private String readItemTitle(final XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, null, "title");
+    private String readNodeAsText(final XmlPullParser parser, final String tagName)
+            throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, null, tagName);
         final String title = readText(parser);
-        parser.require(XmlPullParser.END_TAG, null, "title");
+        parser.require(XmlPullParser.END_TAG, null, tagName);
         return title;
     }
 

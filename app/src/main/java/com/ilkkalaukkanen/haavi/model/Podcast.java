@@ -1,13 +1,27 @@
 package com.ilkkalaukkanen.haavi.model;
 
-public class Podcast {
-    private final String title;
+import org.joda.time.DateTime;
 
-    public Podcast(final String title) {
+public class Podcast {
+    private final String   title;
+    private final String   description;
+    private final DateTime pubDate;
+
+    public Podcast(final String title, final String description, final DateTime pubDate) {
         this.title = title;
+        this.description = description;
+        this.pubDate = pubDate;
     }
 
     public String getTitle() {
         return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public DateTime getPubDate() {
+        return pubDate;
     }
 }

@@ -37,6 +37,7 @@ dependencies {
     compile 'com.android.support:support-v4:+'
     compile 'com.netflix.rxjava:rxjava-android:+'
     compile 'org.roboguice:roboguice:2.+'
+    compile 'joda-time:joda-time:2.+'
     instrumentTestCompile 'org.robolectric:robolectric:2.+'
     instrumentTestCompile 'junit:junit:4.+'
 }

@@ -8,17 +8,22 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import rx.Observable;
 import rx.Subscriber;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public class FeedDownloader {
-    public static final String TAG_TITLE       = "title";
-    public static final String TAG_DESCRIPTION = "description";
-    public static final String TAG_PUBDATE     = "pubDate";
+    public static final String            TAG_TITLE             = "title";
+    public static final String            TAG_DESCRIPTION       = "description";
+    public static final String            TAG_PUBDATE           = "pubDate";
+    public static final DateTimeFormatter RSS_PUBDATE_FORMATTER =
+            DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss Z").withLocale(Locale.ENGLISH);
     @Inject
     HttpClient client;
 
@@ -97,7 +102,9 @@ public class FeedDownloader {
             } else if (TAG_DESCRIPTION.equals(tagName)) {
                 description = readNodeAsText(parser, TAG_DESCRIPTION);
             } else if (TAG_PUBDATE.equals(tagName)) {
-                pubDate = DateTime.parse(readNodeAsText(parser, TAG_PUBDATE));
+                // Mon, 10 Feb 2014 12:00:00 -0400
+                pubDate = DateTime.parse(readNodeAsText(parser, TAG_PUBDATE),
+                                         RSS_PUBDATE_FORMATTER);
             } else {
                 skip(parser);
             }

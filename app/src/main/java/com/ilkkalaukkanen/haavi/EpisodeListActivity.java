@@ -2,9 +2,13 @@ package com.ilkkalaukkanen.haavi;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import com.google.inject.Inject;
 import com.ilkkalaukkanen.haavi.model.Podcast;
+import org.joda.time.format.DateTimeFormat;
 import roboguice.activity.RoboFragmentActivity;
 import rx.android.Properties;
 import rx.android.schedulers.AndroidSchedulers;
@@ -37,6 +41,7 @@ public class EpisodeListActivity extends RoboFragmentActivity
     FeedDownloader feedDownloader;
     private EpisodeListFragment   episodeListFragment;
     private ArrayAdapter<Podcast> podcastArrayAdapter;
+    private ArrayList<Podcast> podcastList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +62,8 @@ public class EpisodeListActivity extends RoboFragmentActivity
             episodeListFragment
                     .setActivateOnItemClick(true);
         }
-        podcastArrayAdapter = new ArrayAdapter<Podcast>(this,
-                                                        android.R.layout.simple_list_item_activated_1,
-                                                        android.R.id.text1,
-                                                        new ArrayList<Podcast>());
+        podcastList = new ArrayList<Podcast>();
+        podcastArrayAdapter = new PodcastArrayAdapter();
         episodeListFragment.setListAdapter(podcastArrayAdapter);
 
         feedDownloader.getFeed("http://www.theskepticsguide.org/feed/sgu")
@@ -96,6 +99,33 @@ public class EpisodeListActivity extends RoboFragmentActivity
             Intent detailIntent = new Intent(this, EpisodeDetailActivity.class);
             detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_ID, id);
             startActivity(detailIntent);
+        }
+    }
+
+    private class PodcastArrayAdapter extends ArrayAdapter<Podcast> {
+        public PodcastArrayAdapter() {
+            super(EpisodeListActivity.this, R.layout.episode_list_item, new ArrayList<Podcast>());
+        }
+
+        @Override
+        public View getView(final int position, final View convertView, final ViewGroup parent) {
+            View view = null;
+            if (convertView != null) {
+                if (convertView.findViewById(R.id.titleTextView) != null) {
+                    view = convertView;
+                }
+            }
+            if (view == null) {
+                view = getLayoutInflater().inflate(R.layout.episode_list_item, null);
+            }
+            assert view != null;
+            TextView titleView = (TextView) view.findViewById(R.id.titleTextView);
+            TextView pubDateView = (TextView) view.findViewById(R.id.pubDateTextView);
+
+            Podcast podcast = getItem(position);
+            titleView.setText(podcast.getTitle());
+            pubDateView.setText(podcast.getPubDate().toLocalDateTime().toString(DateTimeFormat.mediumDateTime()));
+            return view;
         }
     }
 }

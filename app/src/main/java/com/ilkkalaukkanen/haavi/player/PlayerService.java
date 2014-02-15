@@ -52,6 +52,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         player.start();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        player.release();
+        player = null;
+    }
+
     private static class PlayerServiceInterface implements IBinder {
         @Override
         public String getInterfaceDescriptor() throws RemoteException {

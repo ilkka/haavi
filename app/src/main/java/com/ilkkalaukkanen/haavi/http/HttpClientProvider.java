@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.SSLSessionCache;
 import android.os.Build;
 import android.util.Log;
 import com.google.inject.Inject;
@@ -21,15 +22,17 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
 /**
- * Http client injection provider, pilfered with gratitude from http://candrews.integralblue.com/2011/09/best-way-to-use-httpclient-in-android/
+ * Http client injection provider, pilfered with gratitude from
+ * http://candrews.integralblue.com/2011/09/best-way-to-use-httpclient-in-android/
  */
 class HttpClientProvider implements Provider {
     public static final int CONNECTION_TIMEOUT = 60 * 1000;
-    public static final int SO_TIMEOUT         = 5 * 60 * 1000;
+    public static final int SO_TIMEOUT = 5 * 60 * 1000;
     @Inject
     Application application;
 

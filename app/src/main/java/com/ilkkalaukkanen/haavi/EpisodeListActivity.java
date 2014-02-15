@@ -2,34 +2,37 @@ package com.ilkkalaukkanen.haavi;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import com.google.inject.Inject;
+import com.ilkkalaukkanen.haavi.model.Podcast;
 import roboguice.activity.RoboFragmentActivity;
+import rx.Observer;
+import rx.android.concurrency.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 
 /**
- * An activity representing a list of Episodes. This activity
- * has different presentations for handset and tablet-size devices. On
- * handsets, the activity presents a list of items, which when touched,
- * lead to a {@link EpisodeDetailActivity} representing
- * item details. On tablets, the activity presents the list of items and
- * item details side-by-side using two vertical panes.
- * <p>
- * The activity makes heavy use of fragments. The list of items is a
- * {@link EpisodeListFragment} and the item details
+ * An activity representing a list of Episodes. This activity has different presentations for handset and tablet-size
+ * devices. On handsets, the activity presents a list of items, which when touched, lead to a {@link
+ * EpisodeDetailActivity} representing item details. On tablets, the activity presents the list of items and item
+ * details side-by-side using two vertical panes.
+ * <p/>
+ * The activity makes heavy use of fragments. The list of items is a {@link EpisodeListFragment} and the item details
  * (if present) is a {@link EpisodeDetailFragment}.
- * <p>
- * This activity also implements the required
- * {@link EpisodeListFragment.Callbacks} interface
- * to listen for item selections.
+ * <p/>
+ * This activity also implements the required {@link EpisodeListFragment.Callbacks} interface to listen for item
+ * selections.
  */
 public class EpisodeListActivity extends RoboFragmentActivity
         implements EpisodeListFragment.Callbacks {
 
     /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
+     * Whether or not the activity is in two-pane mode, i.e. running on a tablet device.
      */
     private boolean mTwoPane;
+
+    @Inject
+    FeedDownloader feedDownloader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +53,32 @@ public class EpisodeListActivity extends RoboFragmentActivity
                     .setActivateOnItemClick(true);
         }
 
+        feedDownloader.getFeed("http://www.theskepticsguide.org/feed/sgu")
+                      .subscribeOn(Schedulers.newThread())
+                      .observeOn(AndroidSchedulers.mainThread())
+                      .subscribe(new Observer<Podcast>() {
+                          @Override
+                          public void onCompleted() {
+                              Log.d("EpisodeListActivity", "We're done");
+                          }
+
+                          @Override
+                          public void onError(final Throwable throwable) {
+                              Log.e("EpisodeListActivity", "Borked", throwable);
+                          }
+
+                          @Override
+                          public void onNext(final Podcast podcast) {
+                              Log.d("EpisodeListActivity", "Got podcast: " + podcast.getTitle());
+                          }
+                      });
+
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
     /**
-     * Callback method from {@link EpisodeListFragment.Callbacks}
-     * indicating that the item with the given ID was selected.
+     * Callback method from {@link EpisodeListFragment.Callbacks} indicating that the item with the given ID was
+     * selected.
      */
     @Override
     public void onItemSelected(String id) {
@@ -68,8 +91,8 @@ public class EpisodeListActivity extends RoboFragmentActivity
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.episode_detail_container, fragment)
-                    .commit();
+                                       .replace(R.id.episode_detail_container, fragment)
+                                       .commit();
 
         } else {
             // In single-pane mode, simply start the detail activity

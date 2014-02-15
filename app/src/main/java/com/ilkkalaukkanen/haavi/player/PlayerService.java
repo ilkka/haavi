@@ -80,11 +80,13 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
 
     @Override
     public boolean onError(final MediaPlayer mp, final int what, final int extra) {
+        stopForeground(true);
         return false;
     }
 
     @Override
     public void onCompletion(final MediaPlayer mp) {
+        stopForeground(true);
         mp.release();
     }
 

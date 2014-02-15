@@ -7,7 +7,7 @@ import com.google.inject.Inject;
 import com.ilkkalaukkanen.haavi.model.Podcast;
 import roboguice.activity.RoboFragmentActivity;
 import rx.Observer;
-import rx.android.concurrency.AndroidSchedulers;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 

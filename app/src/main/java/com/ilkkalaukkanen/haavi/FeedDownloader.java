@@ -3,58 +3,68 @@ package com.ilkkalaukkanen.haavi;
 import android.util.Xml;
 import com.google.inject.Inject;
 import com.ilkkalaukkanen.haavi.model.Podcast;
-import org.apache.http.nio.client.HttpAsyncClient;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import rx.Observable;
+import rx.Observer;
 import rx.Subscriber;
-import rx.apache.http.ObservableHttp;
-import rx.apache.http.ObservableHttpResponse;
+import rx.Subscription;
+import rx.subscriptions.Subscriptions;
 import rx.util.functions.Func1;
 
 import java.io.IOException;
 
 public class FeedDownloader {
     @Inject
-    HttpAsyncClient client;
+    HttpClient client;
 
     @Inject
     public FeedDownloader() {
     }
 
     public Observable<Podcast> getFeed(final String url) {
-        ObservableHttp.createGet(url, client)
-                      .toObservable()
-                      .flatMap(new Func1<ObservableHttpResponse, Observable<Podcast>>() {
-                          @Override
-                          public Observable<Podcast> call(final ObservableHttpResponse response) {
-                              return Observable.create(new Observable.OnSubscribe<Podcast>() {
-                                  @Override
-                                  public void call(final Subscriber<? super Podcast> subscriber) {
-                                      final XmlPullParser parser = Xml.newPullParser();
-                                      try {
-                                          parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-                                          parser.setInput(response.getResponse().getEntity().getContent(), null);
-                                          parser.nextTag();
-                                          parseEntries(parser, subscriber);
-                                      } catch (XmlPullParserException e) {
-                                          subscriber.onError(e);
-                                      } catch (IOException e) {
-                                          subscriber.onError(e);
-                                      }
-                                  }
-                              });
-                          }
-                      });
-        return null;
+        return Observable.create(new Observable.OnSubscribe<Podcast>() {
+            @Override
+            public void call(final Subscriber<? super Podcast> subscriber) {
+                try {
+                    final HttpResponse response = client.execute(new HttpGet(url));
+                    final HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        final XmlPullParser parser = Xml.newPullParser();
+                        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+                        parser.setInput(entity.getContent(), null);
+                        parser.nextTag();
+                        parseEntries(parser, subscriber);
+                    }
+                    subscriber.onCompleted();
+                } catch (IOException e) {
+                    subscriber.onError(e);
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
-    private void parseEntries(final XmlPullParser parser, final Subscriber<? super Podcast> subscriber) throws
-                                                                                                        IOException,
-                                                                                                        XmlPullParserException {
+    private void parseEntries(final XmlPullParser parser,
+                              final Subscriber<? super Podcast> subscriber)
+            throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "rss");
-        parser.next();
-        parser.require(XmlPullParser.START_TAG, null, "channel");
+        // skip to channel start
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            final String name = parser.getName();
+            if ("channel".equals(name)) {
+                break;
+            }
+        }
+        // parse items
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -68,20 +78,22 @@ public class FeedDownloader {
         }
     }
 
-    private void parseItem(final XmlPullParser parser, final Subscriber<? super Podcast> subscriber) throws
-                                                                                                     IOException,
-                                                                                                     XmlPullParserException {
+    private void parseItem(final XmlPullParser parser,
+                           final Subscriber<? super Podcast> subscriber)
+            throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, null, "item");
+        String title = null;
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
-            String title = null;
             if ("title".equals(parser.getName())) {
                 title = readItemTitle(parser);
+            } else {
+                skip(parser);
             }
-            subscriber.onNext(new Podcast(title));
         }
+        subscriber.onNext(new Podcast(title));
     }
 
     private String readItemTitle(final XmlPullParser parser) throws IOException, XmlPullParserException {

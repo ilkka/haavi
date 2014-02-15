@@ -35,9 +35,8 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:+'
-    compile 'com.netflix.rxjava:rxjava-android:0.11.+'
+    compile 'com.netflix.rxjava:rxjava-android:+'
     compile 'org.roboguice:roboguice:2.+'
-    compile 'com.netflix.rxjava:rxjava-apache-http:+'
     instrumentTestCompile 'org.robolectric:robolectric:2.+'
     instrumentTestCompile 'junit:junit:4.+'
 }

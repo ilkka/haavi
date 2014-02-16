@@ -31,10 +31,12 @@
         </activity>
 
         <service
-                android:name="com.ilkkalaukkanen.haavi.player.PlayerService"
+                android:name=".PlayerService"
                 android:enabled="true"
                 android:exported="true">
         </service>
     </application>
+
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
 </manifest>

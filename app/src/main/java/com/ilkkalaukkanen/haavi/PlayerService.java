@@ -1,4 +1,4 @@
-package com.ilkkalaukkanen.haavi.player;
+package com.ilkkalaukkanen.haavi;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,17 +10,17 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import com.ilkkalaukkanen.haavi.EpisodeDetailActivity;
-import com.ilkkalaukkanen.haavi.R;
 
 import java.io.IOException;
 
 public class PlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
                                                       MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener {
-    public static final  String ACTION_PLAY           = "com.ilkkalaukkanen.haavi.player.action_play";
+    public static final String ACTION_PLAY           = "action_play";
+    public static final String ACTION_PAUSE          = "action_pause";
     public static final  String EXTRA_TITLE           = "extra_title";
-    public static final  String PLAYER_INTERFACE_NAME = "com.ilkkalaukkanen.haavi.player.PlayerService";
+    public static final String PLAYER_INTERFACE_NAME = "com.ilkkalaukkanen.haavi.PlayerService";
     private static final String TAG                   = "PlayerService";
 
     MediaPlayer player;
@@ -35,11 +35,14 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         final String action = intent.getAction();
         assert action != null;
-        title = intent.getStringExtra(EXTRA_TITLE);
         final Uri uri = intent.getData();
         if (action.equals(ACTION_PLAY)) {
+            title = intent.getStringExtra(EXTRA_TITLE);
             startPlaybackAsync(uri);
             return Service.START_STICKY;
+        } else if (action.equals(ACTION_PAUSE)) {
+            pause();
+            return Service.START_NOT_STICKY;
         } else {
             return super.onStartCommand(intent, flags, startId);
         }
@@ -74,11 +77,29 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
                                                      new Intent(getApplicationContext(), EpisodeDetailActivity.class),
                                                      PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = new Notification.Builder(getApplicationContext())
+        final String text = "Description goes here";
+        final NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle()
+                .bigText(text)
+                .setBigContentTitle(title)
+                .setSummaryText(text);
+        final Intent pauseIntent = new Intent(getApplicationContext(), PlayerService.class)
+                .setAction(ACTION_PAUSE);
+        final PendingIntent pauseAction = PendingIntent.getService(getApplicationContext(),
+                                                                   0,
+                                                                   pauseIntent,
+                                                                   PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = new NotificationCompat.Builder(getApplicationContext())
                 .setContentTitle(title)
                 .setContentText(title)
+                .setTicker(title)
                 .setSmallIcon(R.drawable.ic_action_play)
                 .setContentIntent(pi)
+                        //.setLargeIcon() // set thumbnail here
+                .setStyle(bigText)
+                .addAction(R.drawable.ic_action_pause,
+                           "Pause",
+                           pauseAction)
+                .setAutoCancel(false)
                 .build();
         startForeground(1, notification);
         player.start();

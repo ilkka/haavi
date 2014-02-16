@@ -11,19 +11,15 @@ import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import com.google.inject.Inject;
-import com.ilkkalaukkanen.haavi.player.PlayerService;
 import roboguice.activity.RoboFragmentActivity;
 
 import java.util.concurrent.Callable;
 
 /**
- * An activity representing a single Episode detail screen. This
- * activity is only used on handset devices. On tablet-size devices,
- * item details are presented side-by-side with a list of items
- * in a {@link EpisodeListActivity}.
- * <p>
- * This activity is mostly just a 'shell' activity containing nothing
- * more than a {@link EpisodeDetailFragment}.
+ * An activity representing a single Episode detail screen. This activity is only used on handset devices. On
+ * tablet-size devices, item details are presented side-by-side with a list of items in a {@link EpisodeListActivity}.
+ * <p/>
+ * This activity is mostly just a 'shell' activity containing nothing more than a {@link EpisodeDetailFragment}.
  */
 public class EpisodeDetailActivity extends RoboFragmentActivity implements PlaybackControlFragment.PlaybackControlListener,
                                                                            AudioManager.OnAudioFocusChangeListener {
@@ -96,8 +92,8 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.episode_detail_container, fragment)
-                    .commit();
+                                       .add(R.id.episode_detail_container, fragment)
+                                       .commit();
         } else {
             // TODO: get back playback progress probably?
         }

@@ -1,12 +1,16 @@
 package com.ilkkalaukkanen.haavi;
 
 import android.content.Intent;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
-import android.util.Log;
 import android.view.MenuItem;
+import com.google.inject.Inject;
+import com.ilkkalaukkanen.haavi.player.PlayerService;
 import roboguice.activity.RoboFragmentActivity;
+
+import java.util.concurrent.Callable;
 
 /**
  * An activity representing a single Episode detail screen. This
@@ -17,12 +21,28 @@ import roboguice.activity.RoboFragmentActivity;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link EpisodeDetailFragment}.
  */
-public class EpisodeDetailActivity extends RoboFragmentActivity implements ControlsFragment.OnFragmentInteractionListener {
+public class EpisodeDetailActivity extends RoboFragmentActivity implements PlaybackControlFragment.PlaybackControlListener,
+                                                                           AudioManager.OnAudioFocusChangeListener {
+
+    public static final String EXTRA_ITEM_TITLE       = "item_title";
+    public static final String EXTRA_ITEM_DESCRIPTION = "item_description";
+    public static final String EXTRA_ITEM_URL         = "item_url";
+    private String title;
+    private String description;
+    private String url;
+
+    @Inject
+    AudioManager audioManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_episode_detail);
+
+        final Intent intent = getIntent();
+        title = intent.getStringExtra(EXTRA_ITEM_TITLE);
+        description = intent.getStringExtra(EXTRA_ITEM_DESCRIPTION);
+        url = intent.getStringExtra(EXTRA_ITEM_URL);
 
         // Show the Up button in the action bar.
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -40,13 +60,9 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Contr
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            final Intent intent = getIntent();
-            arguments.putString(EpisodeDetailFragment.ARG_ITEM_TITLE,
-                                intent.getStringExtra(EpisodeDetailFragment.ARG_ITEM_TITLE));
-            arguments.putString(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION,
-                                intent.getStringExtra(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION));
-            arguments.putString(EpisodeDetailFragment.ARG_ITEM_URL,
-                                intent.getStringExtra(EpisodeDetailFragment.ARG_ITEM_URL));
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_TITLE, title);
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION, description);
+            arguments.putString(EpisodeDetailFragment.ARG_ITEM_URL, url);
 //            arguments.putString(EpisodeDetailFragment.ARG_ITEM_ID,
 //                                intent.getStringExtra(EpisodeDetailFragment.ARG_ITEM_ID));
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
@@ -54,7 +70,15 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Contr
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.episode_detail_container, fragment)
                     .commit();
+        } else {
+            // TODO: get back playback progress probably?
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // TODO: save playback progress probably?
     }
 
     @Override
@@ -74,8 +98,38 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Contr
         return super.onOptionsItemSelected(item);
     }
 
-  @Override
-  public void onFragmentInteraction(final Uri uri) {
-    Log.d("EpisodeDetailActivity", "onFragmentInteraction called with " + uri.toString());
-  }
+    @Override
+    public void onSkipBackward() {
+
+    }
+
+    @Override
+    public void onSkipForward() {
+
+    }
+
+    @Override
+    public void onTogglePlayback(final Callable<Void> playbackToggledCallback) {
+        final int result = audioManager.requestAudioFocus(this,
+                                                          AudioManager.STREAM_MUSIC,
+                                                          AudioManager.AUDIOFOCUS_GAIN);
+        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            // TODO: what to do?
+        }
+        final Intent intent = new Intent(EpisodeDetailActivity.this, PlayerService.class)
+                .setAction(PlayerService.ACTION_PLAY)
+                .setData(Uri.parse(url))
+                .putExtra(PlayerService.EXTRA_TITLE, title);
+        startService(intent);
+        try {
+            playbackToggledCallback.call();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onAudioFocusChange(final int focusChange) {
+
+    }
 }

@@ -4,5 +4,8 @@
     <string name="app_name">Haavi</string>
     <string name="title_episode_detail">Episode Detail</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="skip_back">Skip backward</string>
+    <string name="toggle_play">Toggle playback</string>
+    <string name="skip_forward">Skip forward</string>
 
 </resources>

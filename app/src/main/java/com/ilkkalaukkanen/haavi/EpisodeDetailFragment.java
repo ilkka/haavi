@@ -1,15 +1,11 @@
 package com.ilkkalaukkanen.haavi;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
-import com.ilkkalaukkanen.haavi.player.PlayerService;
 
 /**
  * A fragment representing a single Episode detail screen. This fragment is either contained in a {@link
@@ -27,10 +23,6 @@ public class EpisodeDetailFragment extends Fragment {
     private String description;
     private String url;
 
-    /**
-     * The dummy title this fragment is presenting.
-     */
-//    private DummyContent.DummyItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon screen orientation
@@ -70,19 +62,6 @@ public class EpisodeDetailFragment extends Fragment {
         // display item
         ((TextView) rootView.findViewById(R.id.episode_title)).setText(title);
         ((TextView) rootView.findViewById(R.id.episode_description)).setText(description);
-
-        // set up controls
-        ImageButton playButton = (ImageButton) rootView.findViewById(R.id.controls_toggle_playback);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View v) {
-                final Intent intent = new Intent(getActivity(), PlayerService.class)
-                        .setAction(PlayerService.ACTION_PLAY)
-                        .setData(Uri.parse(url))
-                        .putExtra(PlayerService.EXTRA_TITLE, title);
-                getActivity().startService(intent);
-            }
-        });
 
         return rootView;
     }

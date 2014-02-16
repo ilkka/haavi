@@ -23,7 +23,7 @@
           android:layout_centerHorizontal="true"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:name="com.ilkkalaukkanen.haavi.ControlsFragment"
-          tools:layout="@layout/fragment_controls"/>
+          android:name="com.ilkkalaukkanen.haavi.PlaybackControlFragment"
+          tools:layout="@layout/fragment_playback_control"/>
 
 </RelativeLayout>

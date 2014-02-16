@@ -42,7 +42,7 @@ public class EpisodeListActivity extends RoboFragmentActivity
     FeedDownloader feedDownloader;
     private EpisodeListFragment   episodeListFragment;
     private ArrayAdapter<Podcast> podcastArrayAdapter;
-    private ArrayList<Podcast> podcastList;
+    private ArrayList<Podcast>    podcastList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +79,7 @@ public class EpisodeListActivity extends RoboFragmentActivity
     /**
      * Callback method from {@link EpisodeListFragment.Callbacks} indicating that the item with the given ID was
      * selected.
+     *
      * @param position
      */
     @Override
@@ -103,9 +104,9 @@ public class EpisodeListActivity extends RoboFragmentActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, EpisodeDetailActivity.class);
-            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_TITLE, item.getTitle());
-            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_DESCRIPTION, item.getDescription());
-            detailIntent.putExtra(EpisodeDetailFragment.ARG_ITEM_URL, item.getUrl());
+            detailIntent.putExtra(EpisodeDetailActivity.EXTRA_ITEM_TITLE, item.getTitle());
+            detailIntent.putExtra(EpisodeDetailActivity.EXTRA_ITEM_DESCRIPTION, item.getDescription());
+            detailIntent.putExtra(EpisodeDetailActivity.EXTRA_ITEM_URL, item.getUrl());
             startActivity(detailIntent);
         }
     }

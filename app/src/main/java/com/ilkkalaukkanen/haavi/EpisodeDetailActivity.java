@@ -1,10 +1,14 @@
 package com.ilkkalaukkanen.haavi;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import com.google.inject.Inject;
 import com.ilkkalaukkanen.haavi.player.PlayerService;
@@ -24,15 +28,39 @@ import java.util.concurrent.Callable;
 public class EpisodeDetailActivity extends RoboFragmentActivity implements PlaybackControlFragment.PlaybackControlListener,
                                                                            AudioManager.OnAudioFocusChangeListener {
 
-    public static final String EXTRA_ITEM_TITLE       = "item_title";
-    public static final String EXTRA_ITEM_DESCRIPTION = "item_description";
-    public static final String EXTRA_ITEM_URL         = "item_url";
+    public static final  String EXTRA_ITEM_TITLE       = "item_title";
+    public static final  String EXTRA_ITEM_DESCRIPTION = "item_description";
+    public static final  String EXTRA_ITEM_URL         = "item_url";
+    private static final String TAG                    = "EpisodeDetailActivity";
+
     private String title;
     private String description;
     private String url;
 
     @Inject
     AudioManager audioManager;
+
+    private PlayerService.LocalPlayerBinder playerInterface;
+    private boolean playerBound = false;
+
+    private final ServiceConnection playerServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            Log.d(TAG, "onServiceConnected: " + name);
+            if (PlayerService.PLAYER_INTERFACE_NAME.equals(name.getClassName())) {
+                playerInterface = (PlayerService.LocalPlayerBinder) service;
+                playerBound = true;
+                Log.d(TAG, "Player interface bound");
+            } else {
+                Log.w(TAG, "Unknown interface");
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            playerBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +101,17 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
         } else {
             // TODO: get back playback progress probably?
         }
+
+        // bind to playback service
+        if (!bindService(new Intent(this, PlayerService.class), playerServiceConnection, BIND_AUTO_CREATE)) {
+            throw new AssertionError();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(playerServiceConnection);
     }
 
     @Override
@@ -110,17 +149,30 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
 
     @Override
     public void onTogglePlayback(final Callable<Void> playbackToggledCallback) {
-        final int result = audioManager.requestAudioFocus(this,
-                                                          AudioManager.STREAM_MUSIC,
-                                                          AudioManager.AUDIOFOCUS_GAIN);
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            // TODO: what to do?
+        if (!playerBound) {
+            Log.e(TAG, "No player interface in onTogglePlayback");
+            return;
         }
-        final Intent intent = new Intent(EpisodeDetailActivity.this, PlayerService.class)
-                .setAction(PlayerService.ACTION_PLAY)
-                .setData(Uri.parse(url))
-                .putExtra(PlayerService.EXTRA_TITLE, title);
-        startService(intent);
+        final PlayerService service = playerInterface.getService();
+        if (!service.isPlaying()) {
+            final int result = audioManager.requestAudioFocus(this,
+                                                              AudioManager.STREAM_MUSIC,
+                                                              AudioManager.AUDIOFOCUS_GAIN);
+            if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                // TODO: what to do?
+            }
+            if (service.isPaused()) {
+                service.play();
+            } else {
+                final Intent intent = new Intent(EpisodeDetailActivity.this, PlayerService.class)
+                        .setAction(PlayerService.ACTION_PLAY)
+                        .setData(Uri.parse(url))
+                        .putExtra(PlayerService.EXTRA_TITLE, title);
+                startService(intent);
+            }
+        } else {
+            service.pause();
+        }
         try {
             playbackToggledCallback.call();
         } catch (Exception e) {
@@ -130,6 +182,11 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
 
     @Override
     public void onAudioFocusChange(final int focusChange) {
-
+        if (!playerBound) {
+            Log.e(TAG, "No player interface in onTogglePlayback");
+            return;
+        }
+        playerInterface.getService().pause();
     }
+
 }

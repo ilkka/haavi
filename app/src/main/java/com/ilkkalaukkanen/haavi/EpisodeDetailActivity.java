@@ -13,8 +13,6 @@ import android.view.MenuItem;
 import com.google.inject.Inject;
 import roboguice.activity.RoboFragmentActivity;
 
-import java.util.concurrent.Callable;
-
 /**
  * An activity representing a single Episode detail screen. This activity is only used on handset devices. On
  * tablet-size devices, item details are presented side-by-side with a list of items in a {@link EpisodeListActivity}.
@@ -39,12 +37,29 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
     private PlayerService.LocalPlayerBinder playerInterface;
     private boolean playerBound = false;
 
+    private PlayerService.PlaybackStateListener playbackStateListener = new PlayerService.PlaybackStateListener() {
+        @Override
+        public void playbackPaused() {
+            if (toggleStateInterface != null) {
+                toggleStateInterface.setPaused();
+            }
+        }
+
+        @Override
+        public void playbackStarted() {
+            if (toggleStateInterface != null) {
+                toggleStateInterface.setPlaying();
+            }
+        }
+    };
+
     private final ServiceConnection playerServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             Log.d(TAG, "onServiceConnected: " + name);
             if (PlayerService.PLAYER_INTERFACE_NAME.equals(name.getClassName())) {
                 playerInterface = (PlayerService.LocalPlayerBinder) service;
+                playerInterface.setPlaybackStateListener(playbackStateListener);
                 playerBound = true;
                 Log.d(TAG, "Player interface bound");
             } else {
@@ -57,6 +72,8 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
             playerBound = false;
         }
     };
+
+    private PlaybackControlFragment.ToggleStateInterface toggleStateInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,12 +108,17 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
 //                                intent.getStringExtra(EpisodeDetailFragment.ARG_ITEM_ID));
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
             fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                                       .add(R.id.episode_detail_container, fragment)
-                                       .commit();
+            getFragmentManager().beginTransaction()
+                                .add(R.id.episode_detail_container, fragment)
+                                .commit();
         } else {
             // TODO: get back playback progress probably?
         }
+
+        PlaybackControlFragment frag = (PlaybackControlFragment) getFragmentManager().findFragmentByTag(
+                "playback_controls");
+        assert frag != null;
+        toggleStateInterface = frag.getToggleStateInterface();
 
         // bind to playback service
         if (!bindService(new Intent(this, PlayerService.class), playerServiceConnection, BIND_AUTO_CREATE)) {
@@ -144,7 +166,7 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
     }
 
     @Override
-    public void onTogglePlayback(final Callable<Void> playbackToggledCallback) {
+    public void onTogglePlayback() {
         if (!playerBound) {
             Log.e(TAG, "No player interface in onTogglePlayback");
             return;
@@ -166,13 +188,10 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
                         .putExtra(PlayerService.EXTRA_TITLE, title);
                 startService(intent);
             }
+            toggleStateInterface.setPlaying();
         } else {
             service.pause();
-        }
-        try {
-            playbackToggledCallback.call();
-        } catch (Exception e) {
-            e.printStackTrace();
+            toggleStateInterface.setPaused();
         }
     }
 

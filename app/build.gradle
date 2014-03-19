@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 apply plugin: 'android'
@@ -15,15 +15,13 @@ repositories {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "19.0.3"
 
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
-        testPackageName "com.ilkkalaukkanen.haavi.test"
-        testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
     buildTypes {
         release {
@@ -38,6 +36,4 @@ dependencies {
     compile 'com.netflix.rxjava:rxjava-android:+'
     compile 'org.roboguice:roboguice:2.+'
     compile 'joda-time:joda-time:2.+'
-    instrumentTestCompile 'org.robolectric:robolectric:2.+'
-    instrumentTestCompile 'junit:junit:4.+'
 }

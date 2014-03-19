@@ -1,5 +1,6 @@
 package com.ilkkalaukkanen.haavi;
 
+import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -86,7 +87,9 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
         url = intent.getStringExtra(EXTRA_ITEM_URL);
 
         // Show the Up button in the action bar.
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        final ActionBar actionBar = getActionBar();
+        assert actionBar != null;
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
@@ -113,8 +116,13 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
                                 .commit();
         } else {
             // TODO: get back playback progress probably?
+            Log.d(TAG, "Should get current playback progress here");
         }
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         PlaybackControlFragment frag = (PlaybackControlFragment) getFragmentManager().findFragmentByTag(
                 "playback_controls");
         assert frag != null;
@@ -127,9 +135,14 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        unbindService(playerServiceConnection);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(playerServiceConnection);
     }
 
     @Override
@@ -178,6 +191,7 @@ public class EpisodeDetailActivity extends RoboFragmentActivity implements Playb
                                                               AudioManager.AUDIOFOCUS_GAIN);
             if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 // TODO: what to do?
+                Log.w(TAG, "Didn't get audio focus!");
             }
             if (service.isPaused()) {
                 service.play();

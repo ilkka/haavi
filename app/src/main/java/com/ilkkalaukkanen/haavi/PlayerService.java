@@ -17,16 +17,29 @@ import java.io.IOException;
 
 public class PlayerService extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
                                                       MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener {
-    public static final String ACTION_PLAY           = "action_play";
-    public static final String ACTION_PAUSE          = "action_pause";
+    public static final  String ACTION_PLAY           = "action_play";
+    public static final  String ACTION_PAUSE          = "action_pause";
     public static final  String EXTRA_TITLE           = "extra_title";
-    public static final String PLAYER_INTERFACE_NAME = "com.ilkkalaukkanen.haavi.PlayerService";
+    public static final  String PLAYER_INTERFACE_NAME = "com.ilkkalaukkanen.haavi.PlayerService";
     private static final String TAG                   = "PlayerService";
 
     MediaPlayer player;
     private String title;
     private IBinder playerBinder = new LocalPlayerBinder();
     private boolean paused       = false;
+
+    // empty implementation
+    private PlaybackStateListener listener = new PlaybackStateListener() {
+        @Override
+        public void playbackPaused() {
+            // nop
+        }
+
+        @Override
+        public void playbackStarted() {
+            // nop
+        }
+    };
 
     public PlayerService() {
     }
@@ -42,6 +55,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
             return Service.START_STICKY;
         } else if (action.equals(ACTION_PAUSE)) {
             pause();
+            listener.playbackPaused();
             return Service.START_NOT_STICKY;
         } else {
             return super.onStartCommand(intent, flags, startId);
@@ -103,6 +117,7 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
                 .build();
         startForeground(1, notification);
         player.start();
+        listener.playbackStarted();
     }
 
     @Override
@@ -160,9 +175,22 @@ public class PlayerService extends Service implements MediaPlayer.OnPreparedList
         return paused;
     }
 
+    /**
+     * This interface can be used by clients to listen to state changes triggered by the service.
+     */
+    public interface PlaybackStateListener {
+        public void playbackPaused();
+
+        public void playbackStarted();
+    }
+
     public class LocalPlayerBinder extends Binder {
         public PlayerService getService() {
             return PlayerService.this;
+        }
+
+        public void setPlaybackStateListener(final PlaybackStateListener l) {
+            listener = l;
         }
     }
 }

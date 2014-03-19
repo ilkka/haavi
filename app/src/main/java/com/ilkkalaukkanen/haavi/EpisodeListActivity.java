@@ -96,9 +96,9 @@ public class EpisodeListActivity extends RoboFragmentActivity
             arguments.putString(EpisodeDetailFragment.ARG_ITEM_URL, item.getUrl());
             EpisodeDetailFragment fragment = new EpisodeDetailFragment();
             fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                                       .replace(R.id.episode_detail_container, fragment)
-                                       .commit();
+            getFragmentManager().beginTransaction()
+                                .replace(R.id.episode_detail_container, fragment)
+                                .commit();
 
         } else {
             // In single-pane mode, simply start the detail activity

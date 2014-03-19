@@ -1,14 +1,12 @@
 package com.ilkkalaukkanen.haavi;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-
-import java.util.concurrent.Callable;
 
 
 /**
@@ -19,17 +17,45 @@ import java.util.concurrent.Callable;
 public class PlaybackControlFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PLAYING = "playing";
-    private final TogglePlaybackCallback playbackToggledCallback;
 
     private boolean playing;
 
-    private PlaybackControlListener listener;
-    private ImageButton             togglePlaybackButton;
-    private ImageButton             skipForwardButton;
-    private ImageButton             skipBackwardButton;
+    private ImageButton togglePlaybackButton;
+    private ImageButton skipForwardButton;
+    private ImageButton skipBackwardButton;
+
+    // empty implementation
+    private PlaybackControlListener listener = new PlaybackControlListener() {
+        @Override
+        public void onSkipBackward() {
+        }
+
+        @Override
+        public void onSkipForward() {
+        }
+
+        @Override
+        public void onTogglePlayback() {
+        }
+    };
+
+    private ToggleStateInterface toggleStateInterface = new ToggleStateInterface() {
+        @Override
+        public void setPlaying() {
+            togglePlaybackButton.setImageResource(R.drawable.ic_action_pause);
+        }
+
+        @Override
+        public void setPaused() {
+            togglePlaybackButton.setImageResource(R.drawable.ic_action_play);
+        }
+    };
+
+    public ToggleStateInterface getToggleStateInterface() {
+        return toggleStateInterface;
+    }
 
     public PlaybackControlFragment() {
-        playbackToggledCallback = new TogglePlaybackCallback(this);
     }
 
     /**
@@ -89,21 +115,15 @@ public class PlaybackControlFragment extends Fragment {
     }
 
     private void onSkipBackwardButtonPressed() {
-        if (listener != null) {
-            listener.onSkipBackward();
-        }
+        listener.onSkipBackward();
     }
 
     private void onSkipForwardButtonPressed() {
-        if (listener != null) {
-            listener.onSkipForward();
-        }
+        listener.onSkipForward();
     }
 
     public void onTogglePlaybackButtonPressed() {
-        if (listener != null) {
-            listener.onTogglePlayback(playbackToggledCallback);
-        }
+        listener.onTogglePlayback();
     }
 
     @Override
@@ -134,22 +154,12 @@ public class PlaybackControlFragment extends Fragment {
 
         public void onSkipForward();
 
-        public void onTogglePlayback(Callable<Void> playbackToggledCallback);
+        public void onTogglePlayback();
     }
 
-    private static class TogglePlaybackCallback implements Callable<Void> {
-        private PlaybackControlFragment playbackControlFragment;
+    public interface ToggleStateInterface {
+        public void setPlaying();
 
-        public TogglePlaybackCallback(final PlaybackControlFragment playbackControlFragment) {
-            this.playbackControlFragment = playbackControlFragment;
-        }
-
-        @Override
-        public Void call() throws Exception {
-            int newIcon = playbackControlFragment.playing ? R.drawable.ic_action_play : R.drawable.ic_action_pause;
-            playbackControlFragment.togglePlaybackButton.setImageResource(newIcon);
-            playbackControlFragment.playing = !playbackControlFragment.playing;
-            return null;
-        }
+        public void setPaused();
     }
 }

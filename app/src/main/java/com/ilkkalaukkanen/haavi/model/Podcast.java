@@ -6,10 +6,11 @@ public class Podcast {
     private final String   title;
     private final String   description;
     private final DateTime pubDate;
-    private final String url;
-    private final String length;
-    private final String type;
-    private final String guid;
+    private final String   url;
+    private final long     length;
+    private final String   type;
+    private final String   guid;
+    private int duration;
 
     public Podcast(final String title,
                    final String description,
@@ -22,7 +23,7 @@ public class Podcast {
         this.description = description;
         this.pubDate = pubDate;
         this.url = url;
-        this.length = length;
+        this.length = Long.parseLong(length, 10);
         this.type = type;
         this.guid = guid;
     }
@@ -47,7 +48,7 @@ public class Podcast {
         return guid;
     }
 
-    public String getLength() {
+    public long getSizeInBytes() {
         return length;
     }
 

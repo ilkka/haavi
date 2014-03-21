@@ -130,10 +130,12 @@ public class EpisodeListActivity extends RoboFragmentActivity
             assert view != null;
             TextView titleView = (TextView) view.findViewById(R.id.titleTextView);
             TextView pubDateView = (TextView) view.findViewById(R.id.pubDateTextView);
+            TextView durationView = (TextView) view.findViewById(R.id.durationTextView);
 
             Podcast podcast = getItem(position);
             titleView.setText(podcast.getTitle());
             pubDateView.setText(podcast.getPubDate().toLocalDateTime().toString(DateTimeFormat.mediumDateTime()));
+            durationView.setText(getString(R.string.sizeMb, podcast.getSizeInBytes() / (1024 * 1024)));
             return view;
         }
     }

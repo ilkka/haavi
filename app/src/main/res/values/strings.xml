@@ -7,5 +7,6 @@
     <string name="skip_back">Skip backward</string>
     <string name="toggle_play">Toggle playback</string>
     <string name="skip_forward">Skip forward</string>
+    <string name="sizeMb">\"%1$s MB\"</string>
 
 </resources>

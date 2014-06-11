@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/ilkka/haavi.png?label=ready&title=Ready)](https://waffle.io/ilkka/haavi)
 haavi
 =====
 
